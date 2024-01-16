@@ -397,17 +397,17 @@ class World {
       var truncatedNumber = Number(number.toFixed(3));
       return truncatedNumber;
     }
-    
+
     function importCsv() {
       const input = document.getElementById('csvInput');
       const file = input.files[0];
       let event = new Event('change');
       let meshParams = [];
       let shapeParams = [];
-    
+
       if (file) {
         const reader = new FileReader();
-    
+
         reader.onload = function (e) {
           const csvContent = e.target.result;
           const data = parseCSV(csvContent);
@@ -418,30 +418,31 @@ class World {
               meshParams.push(Number(row[j]));
             }
           }
-    
+
           for (let k = 56; k <= 66; k++) {
             let row = data[k].split(",");
             shapeParams.push(Number(row[1]));
           }
-    
+
           for (let j = 0; j <= meshParams.length - 1; j++) {
             inputMeshes[j].value = Number(meshParams[j]);
             inputMeshes[j].dispatchEvent(event);
           }
-    
+
           for (let l = 0; l <= shapeParams.length - 1; l++) {
             inputBlendShapes[l].value = Number(shapeParams[l]);
             inputBlendShapes[l].dispatchEvent(event);
           }
-    
+
         };
-    
+
+        console.log("data::")
         reader.readAsText(file);
       } else {
         console.error('No file selected.');
       }
     }
-    
+
     function parseCSV(csv) {
       // Your CSV parsing logic here
       const rows = csv.split('\n');
@@ -494,66 +495,69 @@ class World {
 
     }
 
-    document.getElementById("export-btn").addEventListener("click", function () {      
+    document.getElementById("export-btn").addEventListener("click", function () {
       scene.traverse(function (object) {
         if (!object.isSkinnedMesh) return;
         if (object.geometry.isBufferGeometry !== true) throw new error('only buffergeometry supported.');
         if (object.geometry.morphAttributes && Object.keys(object.geometry.morphAttributes).length > 0) {
         }
 
-
         let filtered_blends = initialBlends.filter(blend => object.name === blend.name);
-        if (filtered_blends.length > 0) {
-          let influences = filtered_blends[0].value;
-          for (let i = 0; i < influences.length; i++) {
-            object.morphTargetInfluences[i] = influences[i];
-          }
-        }
+        // console.log(filtered_blends)
 
-        object.skeleton.bones.forEach(bone => {
-          let filtered = initialRotations.filter(rot => {
-            return rot.name == bone.name
-          })
-          if (filtered.length > 0) {
-            console.log(bone.name)
-            console.log(bone.rotation)
-            console.log(filtered[0])
-            bone.rotation.x = filtered[0].rx;
-            bone.rotation.y = filtered[0].ry;
-            bone.rotation.z = filtered[0].rz;
-            bone.position.x = filtered[0].px;
-            bone.position.y = filtered[0].py;
-            bone.position.z = filtered[0].pz;         
-          }
-          else {
-            bone.rotation.set(0, 0, 0)
-          }
-        });
+        // if (filtered_blends.length > 0) {
+        //   let influences = filtered_blends[0].value;
+        //   for (let i = 0; i < influences.length; i++) {
+        //     object.morphTargetInfluences[i] = influences[i];
+        //   }
+        // }
 
-        var positionattribute = object.geometry.getAttribute('position');
-        var normalattribute = object.geometry.getAttribute('normal');
-        var v1 = new Vector3();
-        for (var j = 0; j < positionattribute.count; j++) {
-          object.boneTransform(j, v1);
-          // object.getVertexPosition(j, v1);
-          positionattribute.setXYZ(j, v1.x, v1.y, v1.z);
-          getBoneNormalTransform.call(object, j, v1);
-          normalattribute.setXYZ(j, v1.x, v1.y, v1.z);
-        }
-        positionattribute.needsUpdate = true;
-        normalattribute.needsUpdate = true;
+        //   object.skeleton.bones.forEach(bone => {
+        //     let filtered = initialRotations.filter(rot => {
+        //       return rot.name == bone.name
+        //     })
+        //     if (filtered.length > 0) {
+        //       // console.log(bone.name)
+        //       // console.log(bone.rotation)
+        //       // console.log(filtered[0])
+        //       bone.rotation.x = filtered[0].rx;
+        //       bone.rotation.y = filtered[0].ry;
+        //       bone.rotation.z = filtered[0].rz;
+        //       bone.position.x = filtered[0].px;
+        //       bone.position.y = filtered[0].py;
+        //       bone.position.z = filtered[0].pz;
+        //     }
+        //     else {
+        //       bone.rotation.set(0, 0, 0)
+        //     }
+        //   });
+
+        // var positionattribute = object.geometry.getAttribute('position');
+        // var normalattribute = object.geometry.getAttribute('normal');
+        // var v1 = new Vector3();
+        // for (var j = 0; j < positionattribute.count; j++) {
+        //   object.boneTransform(j, v1);
+        //   // object.getVertexPosition(j, v1);
+        //   positionattribute.setXYZ(j, v1.x, v1.y, v1.z);
+        //   getBoneNormalTransform.call(object, j, v1);
+        //   normalattribute.setXYZ(j, v1.x, v1.y, v1.z);
+        // }
+        // positionattribute.needsUpdate = true;
+        // normalattribute.needsUpdate = true;
       });
-    
+
       // Create a new OBJExporter
       var exporter = new OBJExporter();
 
       // Export the updated scene
       const result = exporter.parse(scene);
       const blob = new Blob([result], { type: "text/plain" });
+
+      // console.log(scene)
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = "exported_model.obj";
-      link.click();      
+      link.click();
     });
 
     document.getElementById("import-btn").addEventListener("click", function () {
